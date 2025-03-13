@@ -19,3 +19,18 @@ sudo systemctl enable --now kubelet
 
 echo "all the processess have been done"
 kubeadm version 
+echo "Do you want to initialize the Kubernetes cluster? (yes/no)"
+read init_choice
+if [[ "$init_choice" == "yes" ]]; then
+    sudo kubeadm init --pod-network-cidr=192.168.0.0/16 | tee kubeadm-init.log
+
+    echo "Setting up kubeconfig for current user..."
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+    echo "Installing Calico CNI for networking..."
+    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+fi
+
+echo "Installation complete. Reboot recommended."
